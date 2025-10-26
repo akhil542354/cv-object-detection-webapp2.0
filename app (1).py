@@ -1,7 +1,12 @@
+import os
+import sys
+
+# Fix for OpenCV headless mode on Streamlit Cloud
+os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '0'
+
 import gradio as gr
 from ultralytics import YOLO
 import supervision as sv
-
     
 box_annotator = sv.BoxAnnotator()
 category_dict = {
@@ -22,9 +27,6 @@ category_dict = {
     72: 'refrigerator', 73: 'book', 74: 'clock', 75: 'vase', 76: 'scissors',
     77: 'teddy bear', 78: 'hair drier', 79: 'toothbrush'
 }
-
-
-
 def yolov10_inference(image, model_id, image_size, conf_threshold, iou_threshold):
     model = YOLO(f"{model_id}.pt")
     results = model(source=image, imgsz=image_size, iou=iou_threshold, conf=conf_threshold, verbose=False)[0]
@@ -34,9 +36,7 @@ def yolov10_inference(image, model_id, image_size, conf_threshold, iou_threshold
         for class_id, confidence in zip(detections.class_id, detections.confidence)
     ]
     annotated_image = box_annotator.annotate(image, detections=detections, labels=labels)
-
     return annotated_image
-
 def app():
     with gr.Blocks():
         with gr.Row():
@@ -77,10 +77,8 @@ def app():
                     value=0.45,
                 )
                 yolov10_infer = gr.Button(value="Detect Objects")
-
             with gr.Column():
                 output_image = gr.Image(type="pil", label="Annotated Image")
-
         yolov10_infer.click(
             fn=yolov10_inference,
             inputs=[
@@ -92,7 +90,6 @@ def app():
             ],
             outputs=[output_image],
         )
-
         gr.Examples(
             examples=[
                 [
@@ -128,24 +125,22 @@ def app():
             outputs=[output_image],
             cache_examples="lazy",
         )
-
 gradio_app = gr.Blocks()
 with gradio_app:
     gr.HTML(
         """
-    <h1 style='text-align: center'>
+    <h1 style="text-align: center">
     YOLOv10: Real-Time End-to-End Object Detection
     </h1>
     """)
     gr.HTML(
         """
-        <h3 style='text-align: center'>
+        <h3 style="text-align: center">
         Follow me for more!
-        <a href='https://twitter.com/kadirnar_ai' target='_blank'>Twitter</a> | <a href='https://github.com/kadirnar' target='_blank'>Github</a> | <a href='https://www.linkedin.com/in/kadir-nar/' target='_blank'>Linkedin</a>  | <a href='https://www.huggingface.co/kadirnar/' target='_blank'>HuggingFace</a>
+        <a href="https://twitter.com/kadirnar_ai" target="_blank">Twitter</a> | <a href="https://github.com/kadirnar" target="_blank">Github</a> | <a href="https://www.linkedin.com/in/kadir-nar/" target="_blank">Linkedin</a>  | <a href="https://www.huggingface.co/kadirnar/" target="_blank">HuggingFace</a>
         </h3>
         """)
     with gr.Row():
         with gr.Column():
             app()
-
 gradio_app.launch(debug=True)
