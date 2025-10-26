@@ -1,0 +1,4 @@
+supervision==0.21.0
+ultralytics
+spaces
+gradio
